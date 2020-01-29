@@ -18,7 +18,7 @@ L2C0  L2C1 L2C2  L2C3  L2C4
 ...
 ```
 where each line corresponds to edges added at each time step.
-If `1` is passed as the first argument such as
+If `2` is passed as the first argument such as
 ```
 % cat <input-file> | ./a.out 2 > <output-file>
 ```
