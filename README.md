@@ -9,7 +9,7 @@ such as
 % g++ count_attachment_kernel.cpp -O3 -std=c++17
 ```
 
-The input file is supposed to be a tab-separated file such as
+The input file is supposed to be a tab-separated text file such as
 ```
 # some comments
 L0C0  L0C1 L0C2  L0C3
