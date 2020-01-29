@@ -12,7 +12,7 @@ int main(int argc, char** argv)
     if (argc < 2) {
         cerr << "usage: cat file(tsv) | a.out column\n"
                 "# In @file(tsv), each line corresponds to one time step,"
-                "# and entries after @column are considered node-ids that obtain edges."
+                "# and entries after @column are considered node-ids that obtain edges at that time step."
              << endl;
         exit(1);
     }
@@ -22,10 +22,10 @@ int main(int argc, char** argv)
     uint64_t t = 0;             // time (= number of lines read).
     double N = 0;               // cumulative number of nodes at time t.
     double E = 0;               // cumulative number of edges at time t.
-    vector<double> n;           // number of nodes in k-th class at time t.
+    vector<double> n;           // number of nodes in each class at time t.
     vector<uint64_t> k;         // class of each node at time t.
     vector<double> A;           // attachment kernel.
-    vector<vector<uint64_t>> s; // active/inactive switching time point of k-th class
+    vector<vector<uint64_t>> s; // active/inactive switching time points of each class
     vector<double> m_history;   // number of edges added at time t.
 
     for (string line; getline(cin, line);) {
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 
         double N_tmp = N;
 
-        // preprocessing.
+        // Preprocess.
         for (auto it = tok.begin() + column; it != tok.end(); ++it) {
 
             uint64_t const ni = stoull(*it);
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
             ++m[ki];
         }
 
-        // Attachment kernel is updated.
+        // Update attachment kernel.
         for (auto const& ni : nodes) {
 
             uint64_t const& ki = k[ni];
@@ -76,12 +76,12 @@ int main(int argc, char** argv)
 
         N = N_tmp;
 
-        // Classes to which each node belongs are updated.
+        // Update node's class.
         for (auto const& ni : nodes) {
 
             uint64_t const& ki = ++k[ni];
 
-            // In addition, the sizes of some arrays are extended if needed.
+            // Extend sizes of some arrays if needed.
             if (ki >= n.size()) {
                 size_t const sz = ki + 2;
                 n.resize(sz, 0);
@@ -90,8 +90,8 @@ int main(int argc, char** argv)
             }
         }
 
-        // The number of nodes in each class is updated.
-        // In addition, time points to switch the activity state of each class are recorded.
+        // Update The number of nodes in each class
+        // and, in addition, record time points to switch the activity state of each class.
         for (auto const& [k, mk] : m) {
             if (k > 0) {
                 n[k] -= mk;
@@ -104,13 +104,13 @@ int main(int argc, char** argv)
 
     vector<double> w(A.size(), 0); // normalization factor for each class.
 
-    // s[k] should be [ t_a, t_i, t_a, t_i, ...], where 't_a' and 't_i' are, respectively,
-    // a time point at which k-th class is activated and inactivated.
+    // s[k] should be [ t_a, t_i, t_a, t_i, ...], where 't_a' and 't_i' are a time point
+    // at which k-th class is activated and inactivated, respectively.
     for (uint64_t k = 1; k < A.size(); ++k) {
         auto const& sk = s[k];
         for (uint64_t i = 1; i < sk.size(); ++i) {
             if (i % 2) {
-                // to sum up only active time periods (= t_i - t_a).
+                // Sum up only active time periods (= t_i - t_a).
                 for (uint64_t tt = sk[i - 1]; tt < sk[i]; ++tt) {
                     w[k] += m_history[tt];
                 }
@@ -131,6 +131,8 @@ int main(int argc, char** argv)
         }
     }
 
+    // Output the result.
+    
     cout.precision(numeric_limits<double>::digits10);
 
     cout << "# T : " << t << "\n"

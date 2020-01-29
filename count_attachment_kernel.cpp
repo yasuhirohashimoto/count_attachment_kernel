@@ -12,7 +12,7 @@ int main(int argc, char** argv)
     if (argc < 2) {
         cerr << "usage: cat file(tsv) | a.out column\n"
                 "# In @file(tsv), each line corresponds to one time step,"
-                "# and entries after @column are considered node-ids that obtain edges."
+                "# and entries after @column are considered node-ids that obtain edges at that time step."
              << endl;
         exit(1);
     }
@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     uint64_t t = 0;                // time (= number of lines read).
     double N = 0;                  // cumulative number of nodes at time t.
     double E = 0;                  // cumulative number of edges at time t.
-    vector<double> n;              // number of nodes in k-th class at time t.
+    vector<double> n;              // number of nodes in each class at time t.
     vector<uint64_t> k;            // class of each node at time t.
     vector<double> A;              // attachment kernel.
     vector<double> w(A.size(), 0); // normalization factor for each class.
@@ -45,11 +45,11 @@ int main(int argc, char** argv)
         vector<uint64_t> nodes;            // selected nodes.
         unordered_map<uint64_t, double> m; // number of selections of each class.
         double const mt = tok.size() - column;
-		E += mt;
+        E += mt;
 
         double N_tmp = N;
 
-        // preprocessing.
+        // Preprocess.
         for (auto it = tok.begin() + column; it != tok.end(); ++it) {
 
             uint64_t const ni = stoull(*it);
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
             ++m[ki];
         }
 
-        // Attachment kernel is updated.
+        // Update attachment kernel.
         for (auto const& ni : nodes) {
 
             uint64_t const& ki = k[ni];
@@ -75,12 +75,12 @@ int main(int argc, char** argv)
 
         N = N_tmp;
 
-        // Classes to which each node belongs are updated.
+        // Update node's class.
         for (auto const& ni : nodes) {
 
             uint64_t const& ki = ++k[ni];
 
-            // In addition, the sizes of some arrays are extended if needed.
+            // Extend sizes of some arrays if needed.
             if (ki >= n.size()) {
                 size_t const sz = ki + 2;
                 n.resize(sz, 0);
@@ -89,17 +89,19 @@ int main(int argc, char** argv)
             }
         }
 
-        // Normalization factor is updated.
+        // Update normalization factors for each class.
         for (size_t k = 0; k < A.size(); ++k) {
             if (n[k] > 0) w[k] += mt;
         }
 
-        // The number of nodes in each class is updated.
+        // Update the number of nodes in each class.
         for (auto const& [k, mk] : m) {
             if (k > 0) n[k] -= mk;
             n[k + 1] += mk;
         }
     }
+
+    // Output the result.
 
     cout.precision(numeric_limits<double>::digits10);
 
