@@ -17,7 +17,8 @@ L1C0  L1C1 L1C2  L1C3  L1C4  L1C5
 L2C0  L2C1 L2C2  L2C3  L2C4
 ...
 ```
-where each line corresponds to edges added at each time step. L\*C\* should be integer, which represent node-IDs.
+where each line corresponds to edges added at each time step. L\*C\* should be integer, which represent node-IDs that obtain an edge.
+
 If `2` is passed as the first argument such as
 ```
 % cat <input-file> | ./a.out 2 > <output-file>
